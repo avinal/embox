@@ -103,7 +103,6 @@ module stm_usart_h7 extends embox.driver.diag.diag_api {
 	source "stm_hal_msp.c"
 	source "stm_diag.c"
 	source "stm_usart.c"
-	source "stm32_callbacks.c"
 
 	depends embox.driver.serial.core
 	depends embox.driver.serial.diag
