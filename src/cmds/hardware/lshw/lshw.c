@@ -4,10 +4,6 @@
  * @brief Show hardware configuration and properties
  * 
  * @date 14.12.2020
- * @author Anton Bndarev
- * @author Gleb Efimov
- * @author Nikolay Korotkiy
- * @author Alexander Kalmuk
  * @author Avinal Kumar
  */
 
@@ -34,7 +30,18 @@
 
 #include <drivers/block_dev.h>
 
-#include <drivers/input/input_dev.h>
+#include <sys/utsname.h>
+#include <lib/sysctl.h>
+#include <errno.h>
+
+#include <lib/libcpu_info.h>
+
+#include <arpa/inet.h>
+#include <netinet/in.h>
+#include <net/if.h>
+#include <net/inetdevice.h>
+#include <net/netdevice.h>
+#include <net/util/macaddr.h>
 
 static void print_usage(void) {
 	printf("Usage: lshw [-h]\n");
@@ -46,7 +53,7 @@ static void print_error(void) {
 	print_usage();
 }
 
-// lsusb implementation
+/* lsusb implementation */
 static void show_usb_dev(struct usb_dev *usb_dev) {
 	printf("Bus %03d Device %03d ID %04x:%04x\n",
 			usb_dev->bus_idx,
@@ -146,9 +153,9 @@ static void show_usb_desc_configuration(struct usb_dev *usb_dev) {
 			config->b_max_power);	
 }
 
-// lsusb end
+/* lsusb implementation end */
 
-// lspci implementation
+/* lspci implementation */
 
 struct pci_reg {
 	uint8_t offset;
@@ -203,9 +210,9 @@ static void show_device(struct pci_slot_dev *pci_dev, int full) {
 		}
 	}
 }
-// lspci end
+/* lspci implementation end */
 
-// lsblk implementation
+/* lsblk implementation */
 static const char *convert_unit(uint64_t *size) {
 	const char *unit;
 	if (*size < 1024) {
@@ -228,24 +235,99 @@ static const char *convert_unit(uint64_t *size) {
 	}
 	return unit;
 }
-// lsblk end
+/* lsblk implementation end */
 
-// input implementation
-static char *type_to_str(enum input_dev_type type) {
-	switch (type) {
-	case INPUT_DEV_KBD:
-		return "keyboard";
-	case INPUT_DEV_MOUSE:
-		return "mouse";
-	case INPUT_DEV_APB:
-		return "apb";
-	case INPUT_DEV_TOUCHSCREEN:
-		return "touchscreen";
-	default:
-		return "unknown";
+/* ifconfig implementation */
+struct ifconfig_args {
+	char with_a;
+	char with_s;
+	char with_arp, arp;
+	char with_promisc, promisc;
+	char with_allmulti, allmulti;
+	char with_mcast; int mcast;
+	char with_p2p; char p2p; struct in_addr p2p_addr;
+	char with_bcast; char bcast; struct in_addr bcast_addr;
+	char with_iface; char iface[IFNAMSIZ];
+	char with_addr; int addr_family; struct in_addr addr_in;
+			struct in6_addr addr_in6;
+	char with_netmask; struct in_addr netmask;
+	char with_mtu; int mtu;
+	char with_irq; int irq;
+	char with_ioaddr; void *ioaddr;
+	char with_hw; unsigned char hw_addr[MAX_ADDR_LEN];
+	char with_up_or_down; char up;
+};
+
+static int ifconfig_print_long_info(struct in_device *iface) {
+	struct net_device_stats *stat;
+	unsigned char mac[] = "xx:xx:xx:xx:xx:xx";
+	struct in_addr in;
+	char s_in[INET_ADDRSTRLEN], s_in6[INET6_ADDRSTRLEN];
+
+	stat = &iface->dev->stats;
+
+	printf("%s\tLink encap:", &iface->dev->name[0]);
+	if (iface->dev->flags & IFF_LOOPBACK) {
+		printf("Local Loopback");
+	} else {
+		macaddr_print(mac, &iface->dev->dev_addr[0]);
+		printf("Ethernet  HWaddr %s", mac);
 	}
+
+	printf("\n\t");
+	in.s_addr = iface->ifa_address;
+	printf("inet addr:%s", inet_ntop(AF_INET, &in, s_in,
+				INET_ADDRSTRLEN));
+	if (iface->dev->flags & IFF_BROADCAST) {
+		in.s_addr = iface->ifa_broadcast;
+		printf("  Bcast:%s", inet_ntop(AF_INET, &in, s_in,
+					INET_ADDRSTRLEN));
+	}
+	in.s_addr = iface->ifa_mask;
+	printf("  Mask:%s", inet_ntop(AF_INET, &in, s_in,
+				INET_ADDRSTRLEN));
+
+	printf("\n\t");
+	printf("inet6 addr: %s/??", inet_ntop(AF_INET6,
+				&iface->ifa6_address, s_in6, INET6_ADDRSTRLEN));
+	printf("  Scope:Host");
+
+	printf("\n\t");
+	if (iface->dev->flags & IFF_UP) printf("UP ");
+	if (iface->dev->flags & IFF_BROADCAST) printf("BROADCAST ");
+	if (iface->dev->flags & IFF_DEBUG) printf("DEBUG ");
+	if (iface->dev->flags & IFF_LOOPBACK) printf("LOOPBACK ");
+	if (iface->dev->flags & IFF_POINTOPOINT) printf("POINTOPOINT ");
+	if (iface->dev->flags & IFF_NOTRAILERS) printf("NOTRAILERS ");
+	if (iface->dev->flags & IFF_RUNNING) printf("RUNNING ");
+	if (iface->dev->flags & IFF_NOARP) printf("NOARP ");
+	if (iface->dev->flags & IFF_PROMISC) printf("PROMISC ");
+	if (iface->dev->flags & IFF_ALLMULTI) printf("ALLMULTI ");
+	if (iface->dev->flags & IFF_MULTICAST) printf("MULTICAST ");
+	printf(" MTU:%d  Metric:%d", iface->dev->mtu, 0);
+
+	printf("\n\tRX packets:%ld errors:%ld dropped:%ld overruns:%ld frame:%ld",
+			stat->rx_packets, stat->rx_err, stat->rx_dropped,
+			stat->rx_over_errors, stat->rx_frame_errors);
+
+	printf("\n\tTX packets:%ld errors:%ld dropped:%ld overruns:%ld carrier:%ld",
+			stat->tx_packets, stat->tx_err, stat->tx_dropped, 0UL,
+			stat->tx_carrier_errors);
+
+	printf("\n\tcollisions:%ld",
+			stat->collisions);
+
+	printf("\n\tRX bytes:%ld (%ld MiB)  TX bytes:%ld (%ld MiB)",
+			stat->rx_bytes, stat->rx_bytes / 1048576,
+			stat->tx_bytes, stat->tx_bytes / 1048576);
+
+	if (!(iface->dev->flags & IFF_LOOPBACK))
+		printf("\n\tInterrupt:%d Base address:%p", iface->dev->irq, (void *)iface->dev->base_addr);
+
+	printf("\n\n");
+
+	return 0;
 }
-// input end
 
 int main(int argc, char **argv) {
 
@@ -271,12 +353,18 @@ int main(int argc, char **argv) {
 	assert(bdevs);
 
     bool is_bytes = false;
-	struct input_dev *dev = NULL;
 
+	struct utsname info;
+	struct sysct sysct_info;
+
+	struct cpu_info *info = get_cpu_info();
+
+	struct ifconfig_args args;
+	args.with_a = 1;
+	struct in_device *iface = inetdev_get_by_name(&args.iface[0]);
 
 	while (-1 != (opt = getopt(argc, argv, "h"))) {
 		switch (opt) {
-		case '?':
 		case 'h':
 			print_usage();
 			return 0;
@@ -286,30 +374,23 @@ int main(int argc, char **argv) {
 		}
 	}
 
-    // lsusb
-	while ((usb_dev = usb_dev_iterate(usb_dev))) {
-		show_usb_dev(usb_dev);
-		if(flag) {
-			show_usb_desc_device(usb_dev);
-			show_usb_desc_configuration(usb_dev);
-			show_usb_desc_interface(usb_dev);
-		}
-	}
-    printf("\n");
-    // lsusb
+	/* uname */
+	printf("%s ", info.sysname);
+	printf("processor: %s ", sysct_info.processor);
+	printf("platform: %s ", sysct_info.platform);
+	printf("system: %s ", sysct_info.system);
 
-    // lspci
-    pci_foreach_dev(pci_dev) {
-		if (busn_set && pci_dev->busn != busn) continue;
-		if (slot_set && pci_dev->slot != slot) continue;
-		if (func_set && pci_dev->func != func) continue;
-		show_device(pci_dev, full);
+	/* cpuinfo */
+	printf("\t%-20s %s\n", "CPU Vendor ID ", info->vendor_id);
+	
+	for(int i = 0; i < info->feature_count; i++) {
+		printf("\tCPU %-16s %u\n", info->feature[i].name, info->feature[i].val);
 	}
-    printf("\n");
-    // lspci
+	
+	printf("\tCurrent time stamp counter: %llu\n", get_cpu_counter());
 
-    // lsblk
-    printf("Block devices:\n");
+	/* lsblk */
+    printf("Block devices: \n");
 	printf("  ID |  NAME          |    SIZE    | TYPE\n");
 
 	for (i = 0; i < MAX_BDEV_QUANTITY; i++) {
@@ -352,13 +433,31 @@ int main(int argc, char **argv) {
 		}
 	}
 	printf("\n");
-    // lsblk
 
-	// input
-	printf("        Name        Type\n");
-	while ((dev = input_dev_iterate(dev))) {
-		printf("%12s%12s\n", dev->name, type_to_str(dev->type));
+    /* lsusb */
+	printf("USB devices: \n");
+	while ((usb_dev = usb_dev_iterate(usb_dev))) {
+		show_usb_dev(usb_dev);
+		if(flag) {
+			show_usb_desc_device(usb_dev);
+			show_usb_desc_configuration(usb_dev);
+			show_usb_desc_interface(usb_dev);
+		}
 	}
-	// input
+    printf("\n");
+
+    /* lspci */
+	printf("PCI devices: \n");
+    pci_foreach_dev(pci_dev) {
+		if (busn_set && pci_dev->busn != busn) continue;
+		if (slot_set && pci_dev->slot != slot) continue;
+		if (func_set && pci_dev->func != func) continue;
+		show_device(pci_dev, full);
+	}
+    printf("\n");
+
+	/* ifconfig */
+	ifconfig_print_long_info(iface);
+
 	return 0;
 }

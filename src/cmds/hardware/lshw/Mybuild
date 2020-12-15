@@ -16,11 +16,17 @@ package embox.cmd.hw
 	SEE ALSO
 			lshw
 	AUTHORS
-			Anton Bondarev
             Avinal Kumar
 	''')
 module lshw {
 	source "lshw.c"
+
+	depends embox.compat.posix.util.utsname
+	depends embox.lib.sysctl
+	depends embox.framework.LibFramework
+
+	depends embox.lib.LibCpuInfo
+	depends embox.arch.cpu_info
 
     @NoRuntime depends embox.driver.usb.core
 
@@ -28,5 +34,12 @@ module lshw {
 	depends embox.driver.pci
 	depends embox.framework.LibFramework
 
-    depends embox.driver.input.core
+	depends embox.compat.libc.stdio.printf
+	depends embox.compat.posix.net.inet_addr
+	depends embox.net.core
+	depends embox.net.util.macaddr
+	depends embox.net.af_inet
+	depends embox.framework.LibFramework
+	depends embox.compat.libc.stdio.perror
+	depends embox.compat.libc.stdio.scanf
 }
