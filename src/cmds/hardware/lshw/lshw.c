@@ -156,72 +156,6 @@ struct pci_reg {
 	char name[100];
 };
 
-static struct pci_reg endpoint_regs[] = {
-	{0x0, 2, "VENDOR ID"},
-	{0x2, 2, "DEVICE ID"},
-	{0x4, 2, "COMMAND"},
-	{0x6, 2, "STATUS"},
-	{0x8, 1, "REVISION"},
-	{0x9, 1, "CLASS_PROG"},
-	{0xa, 2, "CLASS_DEVICE"},
-	{0xc, 1, "CACHE_LINE_SIZE"},
-	{0xd, 1, "LATENCY_TIMER"},
-	{0xe, 1, "HEADER_TYPE"},
-	{0xf, 1, "BIST"},
-	{0x10, 4, "BAR0"},
-	{0x14, 4, "BAR1"},
-	{0x18, 4, "BAR2"},
-	{0x1c, 4, "BAR3"},
-	{0x20, 4, "BAR4"},
-	{0x24, 4, "BAR5"},
-	{0x28, 4, "CARDBUS_CIS"},
-	{0x2c, 2, "SUBSYSTEM_VENDOR_ID"},
-	{0x2e, 2, "SUBSYSTEM_ID"},
-	{0x30, 4, "ROM_ADDRESS"},
-	{0x34, 1, "CAPABILITIES"},
-	{0x3c, 1, "INTERRUPT_LINE"},
-	{0x3d, 1, "INTERRUPT_PIN"},
-	{0x3e, 1, "MIN_GNT"},
-	{0x3f, 1, "MAX_LAT"},
-	{0, 0, ""},
-};
-
-static struct pci_reg bridge_regs[] = {
-	{0x0, 2, "VENDOR ID"},
-	{0x2, 2, "DEVICE ID"},
-	{0x4, 2, "COMMAND"},
-	{0x6, 2, "STATUS"},
-	{0x8, 1, "REVISION"},
-	{0x9, 1, "CLASS_PROG"},
-	{0xa, 2, "CLASS_DEVICE"},
-	{0xc, 1, "CACHE_LINE_SIZE"},
-	{0xd, 1, "LATENCY_TIMER"},
-	{0xe, 1, "HEADER_TYPE"},
-	{0xf, 1, "BIST"},
-	{0x10, 4, "BAR0"},
-	{0x14, 4, "BAR1"},
-	{0x18, 1, "PRIMARY_BUS#"},
-	{0x19, 1, "SECONDARY_BUS#"},
-	{0x1a, 1, "SUBORDINATE_BUS#"},
-	{0x1b, 1, "SECONDARY_LATENCY_TIMER"},
-	{0x1c, 1, "IO_BASE"},
-	{0x1d, 1, "IO_LIMIT"},
-	{0x1e, 2, "SECONDARY_STATUS"},
-	{0x20, 2, "MEMORY_BASE"},
-	{0x22, 2, "MEMORY_LIMIT"},
-	{0x24, 2, "PRFTCH_MEMORY_BASE"},
-	{0x26, 2, "PRFTCH_MEMORY_LIMIT"},
-	{0x28, 4, "PRFTCH_BASE_UPPER32"},
-	{0x2c, 4, "PRFTCH_LIMIT_UPPER32"},
-	{0x30, 2, "IO_BASE_UPPER16"},
-	{0x32, 2, "IO_LIMIT_UPPER16"},
-	{0x34, 1, "CAPABILITIES"},
-	{0x3c, 1, "INTERRUPT_LINE"},
-	{0x3d, 1, "INTERRUPT_PIN"},
-	{0x3e, 2, "BRIDGE_CONTROL"},
-	{0, 0, ""},
-};
-
 static inline char *pci_get_region_type(uint32_t region_reg) {
 	if (region_reg & 0x1) {
 		return "I/O";
@@ -229,6 +163,7 @@ static inline char *pci_get_region_type(uint32_t region_reg) {
 		return "Mem";
 	}
 }
+
 static inline size_t pci_get_region_size(uint32_t region_reg) {
 	if (0 == (region_reg & 0x1)) {
 		return 1 << 24;

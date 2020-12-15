@@ -48,7 +48,7 @@ jobs:
       - uses: actions/checkout@v2
 
       - name: Install dependencies
-        run: sudo apt-get install build-essential gcc-multilib curl libmpc-dev python
+        run: sudo apt-get install build-essential gcc-7-multilib curl libmpc-dev python
         
       - name: grant permission
         run: chmod -R +x ./mk
