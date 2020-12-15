@@ -238,26 +238,6 @@ static const char *convert_unit(uint64_t *size) {
 /* lsblk implementation end */
 
 /* ifconfig implementation */
-struct ifconfig_args {
-	char with_a;
-	char with_s;
-	char with_arp, arp;
-	char with_promisc, promisc;
-	char with_allmulti, allmulti;
-	char with_mcast; int mcast;
-	char with_p2p; char p2p; struct in_addr p2p_addr;
-	char with_bcast; char bcast; struct in_addr bcast_addr;
-	char with_iface; char iface[IFNAMSIZ];
-	char with_addr; int addr_family; struct in_addr addr_in;
-			struct in6_addr addr_in6;
-	char with_netmask; struct in_addr netmask;
-	char with_mtu; int mtu;
-	char with_irq; int irq;
-	char with_ioaddr; void *ioaddr;
-	char with_hw; unsigned char hw_addr[MAX_ADDR_LEN];
-	char with_up_or_down; char up;
-};
-
 static int ifconfig_print_long_info(struct in_device *iface) {
 	struct net_device_stats *stat;
 	unsigned char mac[] = "xx:xx:xx:xx:xx:xx";
@@ -359,9 +339,7 @@ int main(int argc, char **argv) {
 
 	struct cpu_info *cinfo = get_cpu_info();
 
-	struct ifconfig_args args;
-	args.with_a = 1;
-	struct in_device *iface = inetdev_get_by_name(&args.iface[0]);
+	struct in_device *iface;
 
 	while (-1 != (opt = getopt(argc, argv, "h"))) {
 		switch (opt) {
@@ -457,7 +435,11 @@ int main(int argc, char **argv) {
     printf("\n");
 
 	/* ifconfig */
-	ifconfig_print_long_info(iface);
+	for (iface = inetdev_get_first(); iface != NULL;
+			iface = inetdev_get_next(iface)) {
+		if (!(iface->dev->flags & IFF_UP)) continue;
+		 ifconfig_print_long_info(iface);
+	}
 
 	return 0;
 }
