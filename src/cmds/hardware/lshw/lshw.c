@@ -311,7 +311,7 @@ static int ifconfig_print_long_info(struct in_device *iface) {
 
 int main(int argc, char **argv) {
 
-    
+    printf("reached here 1\n");
     struct usb_dev *usb_dev = NULL;
 	int opt;
     int flag = 1;
@@ -325,22 +325,22 @@ int main(int argc, char **argv) {
 	int slot_set = 0;
 	uint8_t  func = 0;
 	int func_set = 0;
-
+	printf("reached here 2\n");
     int i;
 	struct block_dev **bdevs;
-
+	printf("reached here 3\n");
 	bdevs = get_bdev_tab();
 	assert(bdevs);
 
     bool is_bytes = false;
-
+	printf("reached here 4\n");
 	struct utsname info;
 	struct sysct sysct_info;
-
+	printf("reached here 5\n");
 	struct cpu_info *cinfo = get_cpu_info();
-
+	printf("reached here 6\n");
 	struct in_device *iface;
-
+	printf("reached here 7\n");
 	while (-1 != (opt = getopt(argc, argv, "h"))) {
 		switch (opt) {
 		case 'h':
