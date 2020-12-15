@@ -30,11 +30,11 @@
 
 #include <drivers/block_dev.h>
 
-#include <sys/utsname.h>
-#include <lib/sysctl.h>
-#include <errno.h>
+// #include <sys/utsname.h>
+// #include <lib/sysctl.h>
+// #include <errno.h>
 
-#include <lib/libcpu_info.h>
+// #include <lib/libcpu_info.h>
 
 static void print_usage(void) {
 	printf("Usage: lshw [-h]\n");
@@ -231,7 +231,6 @@ static const char *convert_unit(uint64_t *size) {
 /* lsblk implementation end */
 
 int main(int argc, char **argv) {
-
     struct usb_dev *usb_dev = NULL;
 	int opt;
     int flag = 1;
@@ -251,9 +250,9 @@ int main(int argc, char **argv) {
 	assert(bdevs);
 
     bool is_bytes = false;
-	struct utsname info;
-	struct sysct sysct_info;
-	struct cpu_info *cinfo = get_cpu_info();
+	// struct utsname info;
+	// struct sysct sysct_info;
+	// struct cpu_info *cinfo = get_cpu_info();
 
 	while (-1 != (opt = getopt(argc, argv, "h"))) {
 		switch (opt) {
@@ -267,19 +266,19 @@ int main(int argc, char **argv) {
 	}
 
 	/* uname */
-	printf("%s ", info.sysname);
-	printf("processor: %s ", sysct_info.processor);
-	printf("platform: %s ", sysct_info.platform);
-	printf("system: %s ", sysct_info.system);
+	// printf("%s ", info.sysname);
+	// printf("processor: %s ", sysct_info.processor);
+	// printf("platform: %s ", sysct_info.platform);
+	// printf("system: %s ", sysct_info.system);
 
-	/* cpuinfo */
-	printf("\t%-20s %s\n", "CPU Vendor ID ", cinfo->vendor_id);
+	// /* cpuinfo */
+	// printf("\t%-20s %s\n", "CPU Vendor ID ", cinfo->vendor_id);
 	
-	for(int i = 0; i < cinfo->feature_count; i++) {
-		printf("\tCPU %-16s %u\n", cinfo->feature[i].name, cinfo->feature[i].val);
-	}
+	// for(int i = 0; i < cinfo->feature_count; i++) {
+	// 	printf("\tCPU %-16s %u\n", cinfo->feature[i].name, cinfo->feature[i].val);
+	// }
 	
-	printf("\tCurrent time stamp counter: %llu\n", get_cpu_counter());
+	// printf("\tCurrent time stamp counter: %llu\n", get_cpu_counter());
 
 	/* lsblk */
     printf("Block devices: \n");

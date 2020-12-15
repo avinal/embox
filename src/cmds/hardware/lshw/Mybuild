@@ -21,10 +21,6 @@ package embox.cmd.hw
 module lshw {
 	source "lshw.c"
 
-	depends embox.compat.posix.util.utsname
-	depends embox.lib.sysctl
-	depends embox.framework.LibFramework
-
 	depends embox.lib.LibCpuInfo
 	depends embox.arch.cpu_info
 
