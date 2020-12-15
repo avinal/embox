@@ -33,13 +33,4 @@ module lshw {
     depends embox.compat.libc.all
 	depends embox.driver.pci
 	depends embox.framework.LibFramework
-
-	depends embox.compat.libc.stdio.printf
-	depends embox.compat.posix.net.inet_addr
-	depends embox.net.core
-	depends embox.net.util.macaddr
-	depends embox.net.af_inet
-	depends embox.framework.LibFramework
-	depends embox.compat.libc.stdio.perror
-	depends embox.compat.libc.stdio.scanf
 }

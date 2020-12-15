@@ -36,13 +36,6 @@
 
 #include <lib/libcpu_info.h>
 
-#include <arpa/inet.h>
-#include <netinet/in.h>
-#include <net/if.h>
-#include <net/inetdevice.h>
-#include <net/netdevice.h>
-#include <net/util/macaddr.h>
-
 static void print_usage(void) {
 	printf("Usage: lshw [-h]\n");
 	printf("\t[-h]      - print this help\n");
@@ -237,81 +230,8 @@ static const char *convert_unit(uint64_t *size) {
 }
 /* lsblk implementation end */
 
-/* ifconfig implementation */
-static int ifconfig_print_long_info(struct in_device *iface) {
-	struct net_device_stats *stat;
-	unsigned char mac[] = "xx:xx:xx:xx:xx:xx";
-	struct in_addr in;
-	char s_in[INET_ADDRSTRLEN], s_in6[INET6_ADDRSTRLEN];
-
-	stat = &iface->dev->stats;
-
-	printf("%s\tLink encap:", &iface->dev->name[0]);
-	if (iface->dev->flags & IFF_LOOPBACK) {
-		printf("Local Loopback");
-	} else {
-		macaddr_print(mac, &iface->dev->dev_addr[0]);
-		printf("Ethernet  HWaddr %s", mac);
-	}
-
-	printf("\n\t");
-	in.s_addr = iface->ifa_address;
-	printf("inet addr:%s", inet_ntop(AF_INET, &in, s_in,
-				INET_ADDRSTRLEN));
-	if (iface->dev->flags & IFF_BROADCAST) {
-		in.s_addr = iface->ifa_broadcast;
-		printf("  Bcast:%s", inet_ntop(AF_INET, &in, s_in,
-					INET_ADDRSTRLEN));
-	}
-	in.s_addr = iface->ifa_mask;
-	printf("  Mask:%s", inet_ntop(AF_INET, &in, s_in,
-				INET_ADDRSTRLEN));
-
-	printf("\n\t");
-	printf("inet6 addr: %s/??", inet_ntop(AF_INET6,
-				&iface->ifa6_address, s_in6, INET6_ADDRSTRLEN));
-	printf("  Scope:Host");
-
-	printf("\n\t");
-	if (iface->dev->flags & IFF_UP) printf("UP ");
-	if (iface->dev->flags & IFF_BROADCAST) printf("BROADCAST ");
-	if (iface->dev->flags & IFF_DEBUG) printf("DEBUG ");
-	if (iface->dev->flags & IFF_LOOPBACK) printf("LOOPBACK ");
-	if (iface->dev->flags & IFF_POINTOPOINT) printf("POINTOPOINT ");
-	if (iface->dev->flags & IFF_NOTRAILERS) printf("NOTRAILERS ");
-	if (iface->dev->flags & IFF_RUNNING) printf("RUNNING ");
-	if (iface->dev->flags & IFF_NOARP) printf("NOARP ");
-	if (iface->dev->flags & IFF_PROMISC) printf("PROMISC ");
-	if (iface->dev->flags & IFF_ALLMULTI) printf("ALLMULTI ");
-	if (iface->dev->flags & IFF_MULTICAST) printf("MULTICAST ");
-	printf(" MTU:%d  Metric:%d", iface->dev->mtu, 0);
-
-	printf("\n\tRX packets:%ld errors:%ld dropped:%ld overruns:%ld frame:%ld",
-			stat->rx_packets, stat->rx_err, stat->rx_dropped,
-			stat->rx_over_errors, stat->rx_frame_errors);
-
-	printf("\n\tTX packets:%ld errors:%ld dropped:%ld overruns:%ld carrier:%ld",
-			stat->tx_packets, stat->tx_err, stat->tx_dropped, 0UL,
-			stat->tx_carrier_errors);
-
-	printf("\n\tcollisions:%ld",
-			stat->collisions);
-
-	printf("\n\tRX bytes:%ld (%ld MiB)  TX bytes:%ld (%ld MiB)",
-			stat->rx_bytes, stat->rx_bytes / 1048576,
-			stat->tx_bytes, stat->tx_bytes / 1048576);
-
-	if (!(iface->dev->flags & IFF_LOOPBACK))
-		printf("\n\tInterrupt:%d Base address:%p", iface->dev->irq, (void *)iface->dev->base_addr);
-
-	printf("\n\n");
-
-	return 0;
-}
-
 int main(int argc, char **argv) {
 
-    printf("reached here 1\n");
     struct usb_dev *usb_dev = NULL;
 	int opt;
     int flag = 1;
@@ -325,22 +245,16 @@ int main(int argc, char **argv) {
 	int slot_set = 0;
 	uint8_t  func = 0;
 	int func_set = 0;
-	printf("reached here 2\n");
-    int i;
+	int i;
 	struct block_dev **bdevs;
-	printf("reached here 3\n");
 	bdevs = get_bdev_tab();
 	assert(bdevs);
 
     bool is_bytes = false;
-	printf("reached here 4\n");
 	struct utsname info;
 	struct sysct sysct_info;
-	printf("reached here 5\n");
 	struct cpu_info *cinfo = get_cpu_info();
-	printf("reached here 6\n");
-	struct in_device *iface;
-	printf("reached here 7\n");
+
 	while (-1 != (opt = getopt(argc, argv, "h"))) {
 		switch (opt) {
 		case 'h':
@@ -433,13 +347,6 @@ int main(int argc, char **argv) {
 		show_device(pci_dev, full);
 	}
     printf("\n");
-
-	/* ifconfig */
-	for (iface = inetdev_get_first(); iface != NULL;
-			iface = inetdev_get_next(iface)) {
-		if (!(iface->dev->flags & IFF_UP)) continue;
-		 ifconfig_print_long_info(iface);
-	}
 
 	return 0;
 }
