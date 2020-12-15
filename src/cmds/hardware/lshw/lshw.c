@@ -357,7 +357,7 @@ int main(int argc, char **argv) {
 	struct utsname info;
 	struct sysct sysct_info;
 
-	struct cpu_info *info = get_cpu_info();
+	struct cpu_info *cinfo = get_cpu_info();
 
 	struct ifconfig_args args;
 	args.with_a = 1;
@@ -381,10 +381,10 @@ int main(int argc, char **argv) {
 	printf("system: %s ", sysct_info.system);
 
 	/* cpuinfo */
-	printf("\t%-20s %s\n", "CPU Vendor ID ", info->vendor_id);
+	printf("\t%-20s %s\n", "CPU Vendor ID ", cinfo->vendor_id);
 	
-	for(int i = 0; i < info->feature_count; i++) {
-		printf("\tCPU %-16s %u\n", info->feature[i].name, info->feature[i].val);
+	for(int i = 0; i < cinfo->feature_count; i++) {
+		printf("\tCPU %-16s %u\n", cinfo->feature[i].name, cinfo->feature[i].val);
 	}
 	
 	printf("\tCurrent time stamp counter: %llu\n", get_cpu_counter());
