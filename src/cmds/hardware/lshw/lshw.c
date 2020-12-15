@@ -429,7 +429,7 @@ int main(int argc, char **argv) {
     printf("\n");
 
 	/* ifconfig */
-	print("Network: \n");
+	printf("Network: \n");
 	for (iface = inetdev_get_first(); iface != NULL;
 			iface = inetdev_get_next(iface)) {
 		if (!(iface->dev->flags & IFF_UP)) continue;
