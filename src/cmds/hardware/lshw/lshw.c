@@ -34,7 +34,7 @@
 // #include <lib/sysctl.h>
 // #include <errno.h>
 
-// #include <lib/libcpu_info.h>
+#include <lib/libcpu_info.h>
 
 #include <arpa/inet.h>
 #include <netinet/in.h>
@@ -331,7 +331,7 @@ int main(int argc, char **argv) {
     bool is_bytes = false;
 	// struct utsname info;
 	// struct sysct sysct_info;
-	// struct cpu_info *cinfo = get_cpu_info();
+	struct cpu_info *cinfo = get_cpu_info();
 
 	struct in_device *iface;
 
@@ -352,14 +352,14 @@ int main(int argc, char **argv) {
 	// printf("platform: %s ", sysct_info.platform);
 	// printf("system: %s ", sysct_info.system);
 
-	// /* cpuinfo */
-	// printf("\t%-20s %s\n", "CPU Vendor ID ", cinfo->vendor_id);
+	/* cpuinfo */
+	printf("\t%-20s %s\n", "CPU Vendor ID ", cinfo->vendor_id);
 	
-	// for(int i = 0; i < cinfo->feature_count; i++) {
-	// 	printf("\tCPU %-16s %u\n", cinfo->feature[i].name, cinfo->feature[i].val);
-	// }
+	for(int i = 0; i < cinfo->feature_count; i++) {
+		printf("\tCPU %-16s %u\n", cinfo->feature[i].name, cinfo->feature[i].val);
+	}
 	
-	// printf("\tCurrent time stamp counter: %llu\n", get_cpu_counter());
+	printf("\tCurrent time stamp counter: %llu\n", get_cpu_counter());
 
 	/* lsblk */
     printf("Block devices: \n");
@@ -429,6 +429,7 @@ int main(int argc, char **argv) {
     printf("\n");
 
 	/* ifconfig */
+	print("Network: \n");
 	for (iface = inetdev_get_first(); iface != NULL;
 			iface = inetdev_get_next(iface)) {
 		if (!(iface->dev->flags & IFF_UP)) continue;
