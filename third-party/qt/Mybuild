@@ -12,6 +12,7 @@ static module core {
 	option boolean process_support=false
 	option boolean fonts_support=true
 	option boolean vnc_support=true
+	option boolean touchscreen=false
 	option string qconfig="full"
 
 	@AddPrefix("^BUILD/extbld/^MOD_PATH/install/lib")
@@ -22,7 +23,7 @@ static module core {
 	@NoRuntime depends embox.compat.libc.all
 	@NoRuntime depends embox.compat.posix.fs.dirent
 	@NoRuntime depends embox.compat.posix.util.nanosleep
-	@NoRuntime depends embox.fs.rootfs
+	@NoRuntime depends embox.fs.root_file_system
 	@NoRuntime depends embox.compat.posix.LibPosix
 	@NoRuntime depends embox.compat.posix.util.environ
 	@NoRuntime depends embox.compat.posix.util.times

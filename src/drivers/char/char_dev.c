@@ -29,7 +29,8 @@ INDEX_DEF(char_dev_idx, 0, MAX_CDEV_QUANTITY);
 struct dev_module **get_cdev_tab(void) {
 	return &devtab[0];
 }
-void devfs_notify_new_module(struct dev_module *devmod);
+extern void devfs_notify_new_module(struct dev_module *devmod);
+extern void devfs_notify_del_module(struct dev_module *devmod);
 int char_dev_register(struct dev_module *cdev) {
 	int cdev_id;
 
@@ -41,6 +42,7 @@ int char_dev_register(struct dev_module *cdev) {
 		log_error("Failed to register char dev %s", cdev->name ? cdev->name : "");
 		return -ENOMEM;
 	}
+	cdev->dev_id = DEVID_CDEV | cdev_id;
 
 	devtab[cdev_id] = cdev;
 
@@ -50,6 +52,22 @@ int char_dev_register(struct dev_module *cdev) {
 	/* cdev->dev_id = cdev_id; */
 
 	devfs_notify_new_module(cdev);
+
+	return 0;
+}
+
+int char_dev_unregister(struct dev_module *cdev) {
+	assert(cdev);
+
+	if (devtab[cdev->dev_id & DEVID_ID_MASK] == cdev) {
+		return -ENODEV;
+	}
+
+	devfs_notify_del_module(cdev);
+
+	index_free(&char_dev_idx, cdev->dev_id & DEVID_ID_MASK);
+
+	devtab[cdev->dev_id & DEVID_ID_MASK] = NULL;
 
 	return 0;
 }
